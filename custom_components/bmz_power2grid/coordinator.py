@@ -118,8 +118,8 @@ class BmzCoordinator(DataUpdateCoordinator[dict]):
             We create two monotonic counters: charge_kWh and discharge_kWh.
         - Grid:
             grid_power_total_w is signed:
-              * positive = importing from grid
-              * negative = exporting to grid
+              * negative = importing from grid
+              * positive = exporting to grid
             We create two monotonic counters: import_kWh and export_kWh.
         """
         if self._last_ts is None:
@@ -144,13 +144,13 @@ class BmzCoordinator(DataUpdateCoordinator[dict]):
             elif bw > 0:  # discharging
                 self._energy.battery_discharge_kwh += (bw * dt_s) / 3_600_000.0
 
-        # Grid
+        # Grid (negative = importing, positive = exporting)
         if grid_w is not None:
             gw = float(grid_w)
-            if gw > 0:  # importing from grid
-                self._energy.grid_import_kwh += (gw * dt_s) / 3_600_000.0
-            elif gw < 0:  # exporting to grid
-                self._energy.grid_export_kwh += ((-gw) * dt_s) / 3_600_000.0
+            if gw < 0:  # importing from grid
+                self._energy.grid_import_kwh += ((-gw) * dt_s) / 3_600_000.0
+            elif gw > 0:  # exporting to grid
+                self._energy.grid_export_kwh += (gw * dt_s) / 3_600_000.0
 
     async def _async_update_data(self) -> dict:
         try:
@@ -203,9 +203,9 @@ class BmzCoordinator(DataUpdateCoordinator[dict]):
             grid_power_total_w = grid_l1_w + grid_l2_w + grid_l3_w
 
             # --- GRID IMPORT/EXPORT ---
-            # Positive grid power = importing, negative = exporting
-            grid_import_w = max(0, grid_power_total_w)
-            grid_export_w = max(0, -grid_power_total_w)
+            # Negative grid power = importing from grid, positive = exporting to grid
+            grid_import_w = max(0, -grid_power_total_w)
+            grid_export_w = max(0, grid_power_total_w)
 
             # --- ENERGY ACCUMULATION ---
             now = time.monotonic()
