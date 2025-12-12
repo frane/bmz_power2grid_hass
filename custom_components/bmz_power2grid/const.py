@@ -1,8 +1,12 @@
+from __future__ import annotations
+
 DOMAIN = "bmz_power2grid"
 
 DEFAULT_PORT = 5743
 DEFAULT_UNIT_ID = 252
 DEFAULT_SCAN_INTERVAL = 5  # seconds
+
+PLATFORMS: list[str] = ["sensor"]
 
 CONF_HOST = "host"
 CONF_PORT = "port"

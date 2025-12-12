@@ -7,7 +7,9 @@ from .const import DOMAIN, CONF_HOST, CONF_PORT, CONF_UNIT_ID, CONF_SCAN_INTERVA
 from .modbus_client import RtuOverTcpClient
 from .coordinator import BmzCoordinator
 
+
 PLATFORMS = ["sensor"]
+
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     client = RtuOverTcpClient(
@@ -28,6 +30,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True
+
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
