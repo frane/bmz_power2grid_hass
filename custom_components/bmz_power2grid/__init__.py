@@ -7,9 +7,6 @@ from .const import DOMAIN, CONF_HOST, CONF_PORT, CONF_UNIT_ID, CONF_SCAN_INTERVA
 from .modbus_client import RtuOverTcpClient
 from .coordinator import BmzCoordinator
 
-import logging
-_LOGGER = logging.getLogger(__name__)
-
 PLATFORMS = ["sensor"]
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:

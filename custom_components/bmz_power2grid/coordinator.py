@@ -6,6 +6,9 @@ from typing import Any
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
+import logging
+_LOGGER = logging.getLogger(__name__)
+
 from .const import (
     DEFAULT_SCAN_INTERVAL,
     REG_PV_POWER_W_INT32,
