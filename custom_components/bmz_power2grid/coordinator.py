@@ -25,7 +25,7 @@ class BmzCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     def __init__(self, hass: HomeAssistant, client: RtuOverTcpClient, unit_id: int, scan_interval: int) -> None:
         super().__init__(
             hass,
-            logger=None,
+            _LOGGER,
             name="BMZ Power2Grid",
             update_interval=timedelta(seconds=scan_interval or DEFAULT_SCAN_INTERVAL),
         )
