@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import logging
+import time
+from dataclasses import dataclass
 from datetime import timedelta
 
 from homeassistant.config_entries import ConfigEntry
@@ -40,6 +42,17 @@ from .modbus_client import RtuOverTcpClient, regs_to_s32_be
 _LOGGER = logging.getLogger(__name__)
 
 
+@dataclass
+class EnergyAccumulators:
+    """
+    Persisted in the sensor entities (RestoreEntity), but computed here.
+    Values are in kWh and monotonically increasing.
+    """
+    pv_kwh: float = 0.0
+    battery_charge_kwh: float = 0.0
+    battery_discharge_kwh: float = 0.0
+
+
 class BmzCoordinator(DataUpdateCoordinator[dict]):
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
         self.entry = entry
@@ -55,12 +68,57 @@ class BmzCoordinator(DataUpdateCoordinator[dict]):
 
         self.client = RtuOverTcpClient(host=host, port=port, timeout=3.0)
 
+        # Energy accumulation state
+        self._last_ts: float | None = None
+        self._energy = EnergyAccumulators()
+
         super().__init__(
             hass=hass,
             logger=_LOGGER,
             name=DOMAIN,
             update_interval=timedelta(seconds=int(scan_interval)),
         )
+
+    def set_energy_state(self, pv_kwh: float | None, chg_kwh: float | None, dis_kwh: float | None) -> None:
+        """Called by RestoreEntity sensors after restore."""
+        if pv_kwh is not None:
+            self._energy.pv_kwh = float(pv_kwh)
+        if chg_kwh is not None:
+            self._energy.battery_charge_kwh = float(chg_kwh)
+        if dis_kwh is not None:
+            self._energy.battery_discharge_kwh = float(dis_kwh)
+
+    def _integrate_energy(self, pv_w: float | None, batt_w: float | None, now: float) -> None:
+        """
+        Integrate power -> energy:
+        - PV energy: only positive generation (>=0)
+        - Battery:
+            battery_power_w is signed:
+              * negative = charging
+              * positive = discharging
+            We create two monotonic counters: charge_kWh and discharge_kWh.
+        """
+        if self._last_ts is None:
+            self._last_ts = now
+            return
+
+        dt_s = max(0.0, now - self._last_ts)
+        self._last_ts = now
+        if dt_s <= 0:
+            return
+
+        # PV
+        if pv_w is not None:
+            pv_pos_w = max(0.0, float(pv_w))
+            self._energy.pv_kwh += (pv_pos_w * dt_s) / 3_600_000.0  # W*s -> kWh
+
+        # Battery
+        if batt_w is not None:
+            bw = float(batt_w)
+            if bw < 0:  # charging
+                self._energy.battery_charge_kwh += ((-bw) * dt_s) / 3_600_000.0
+            elif bw > 0:  # discharging
+                self._energy.battery_discharge_kwh += (bw * dt_s) / 3_600_000.0
 
     async def _async_update_data(self) -> dict:
         try:
@@ -69,7 +127,7 @@ class BmzCoordinator(DataUpdateCoordinator[dict]):
             pv_power_w = regs_to_s32_be(pv_regs)
 
             batt_regs = await self.client.read_holding_registers(self.unit_id, REG_BATTERY_POWER_W_INT32, 2)
-            battery_power_w = regs_to_s32_be(batt_regs)  # your device: negative=charging (as observed)
+            battery_power_w = regs_to_s32_be(batt_regs)  # negative=charging
 
             battery_charge_w = max(0, -battery_power_w)
             battery_discharge_w = max(0, battery_power_w)
@@ -89,7 +147,6 @@ class BmzCoordinator(DataUpdateCoordinator[dict]):
             battery_temp_c = round(bat_temp_raw * SCALE_BATTERY_TEMP, 2)
 
             # --- GRID (per phase V/A/Hz blocks) ---
-            # Each block is 3 regs: [V*10, A*100, Hz*100] (based on your confirmed mapping)
             l1 = await self.client.read_holding_registers(self.unit_id, REG_GRID_L1_BLOCK_U16, 3)
             l2 = await self.client.read_holding_registers(self.unit_id, REG_GRID_L2_BLOCK_U16, 3)
             l3 = await self.client.read_holding_registers(self.unit_id, REG_GRID_L3_BLOCK_U16, 3)
@@ -112,6 +169,10 @@ class BmzCoordinator(DataUpdateCoordinator[dict]):
             grid_l2_w = GRID_POWER_SIGN * regs_to_s32_be(gp[2:4])
             grid_l3_w = GRID_POWER_SIGN * regs_to_s32_be(gp[4:6])
             grid_power_total_w = grid_l1_w + grid_l2_w + grid_l3_w
+
+            # --- ENERGY ACCUMULATION ---
+            now = time.monotonic()
+            self._integrate_energy(pv_power_w, battery_power_w, now)
 
             return {
                 # power
@@ -144,6 +205,11 @@ class BmzCoordinator(DataUpdateCoordinator[dict]):
                 "grid_l2_w": grid_l2_w,
                 "grid_l3_w": grid_l3_w,
                 "grid_power_total_w": grid_power_total_w,
+
+                # energy (monotonic, kWh)
+                "pv_energy_kwh": round(self._energy.pv_kwh, 3),
+                "battery_charge_energy_kwh": round(self._energy.battery_charge_kwh, 3),
+                "battery_discharge_energy_kwh": round(self._energy.battery_discharge_kwh, 3),
             }
 
         except Exception as err:

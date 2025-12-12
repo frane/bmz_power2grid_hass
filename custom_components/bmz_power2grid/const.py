@@ -8,8 +8,8 @@ DEFAULT_SCAN_INTERVAL = 5  # seconds
 
 PLATFORMS: list[str] = ["sensor"]
 
-CONF_HOST = "host"
-CONF_PORT = "port"
+# Use homeassistant.const for CONF_HOST and CONF_PORT
+# Only define custom config keys here
 CONF_UNIT_ID = "unit_id"
 CONF_SCAN_INTERVAL = "scan_interval"
 
