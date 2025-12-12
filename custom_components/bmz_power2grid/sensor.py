@@ -50,10 +50,20 @@ SENSORS: tuple[BmzSensorDef, ...] = (
     BmzSensorDef("grid_l3_a", "Grid L3 Current", "A", SensorDeviceClass.CURRENT, SensorStateClass.MEASUREMENT),
     BmzSensorDef("grid_l3_hz", "Grid Frequency (L3)", "Hz", SensorDeviceClass.FREQUENCY, SensorStateClass.MEASUREMENT),
 
+    # --- Grid Power ---
+    BmzSensorDef("grid_power_total_w", "Grid Power", "W", SensorDeviceClass.POWER, SensorStateClass.MEASUREMENT),
+    BmzSensorDef("grid_l1_w", "Grid L1 Power", "W", SensorDeviceClass.POWER, SensorStateClass.MEASUREMENT),
+    BmzSensorDef("grid_l2_w", "Grid L2 Power", "W", SensorDeviceClass.POWER, SensorStateClass.MEASUREMENT),
+    BmzSensorDef("grid_l3_w", "Grid L3 Power", "W", SensorDeviceClass.POWER, SensorStateClass.MEASUREMENT),
+    BmzSensorDef("grid_import_w", "Grid Import Power", "W", SensorDeviceClass.POWER, SensorStateClass.MEASUREMENT),
+    BmzSensorDef("grid_export_w", "Grid Export Power", "W", SensorDeviceClass.POWER, SensorStateClass.MEASUREMENT),
+
     # --- Energy (Energy Dashboard compatible: kWh + total_increasing) ---
     BmzSensorDef("pv_energy_kwh", "PV Energy", "kWh", SensorDeviceClass.ENERGY, SensorStateClass.TOTAL_INCREASING),
     BmzSensorDef("battery_charge_energy_kwh", "Battery Charge Energy", "kWh", SensorDeviceClass.ENERGY, SensorStateClass.TOTAL_INCREASING),
     BmzSensorDef("battery_discharge_energy_kwh", "Battery Discharge Energy", "kWh", SensorDeviceClass.ENERGY, SensorStateClass.TOTAL_INCREASING),
+    BmzSensorDef("grid_import_energy_kwh", "Grid Import Energy", "kWh", SensorDeviceClass.ENERGY, SensorStateClass.TOTAL_INCREASING),
+    BmzSensorDef("grid_export_energy_kwh", "Grid Export Energy", "kWh", SensorDeviceClass.ENERGY, SensorStateClass.TOTAL_INCREASING),
 )
 
 
@@ -89,7 +99,14 @@ class BmzSensor(CoordinatorEntity[BmzCoordinator], SensorEntity, RestoreEntity):
         # Restore monotonic counters so Energy Dashboard keeps history after restart.
         await super().async_added_to_hass()
 
-        if self._def.key in ("pv_energy_kwh", "battery_charge_energy_kwh", "battery_discharge_energy_kwh"):
+        energy_keys = (
+            "pv_energy_kwh",
+            "battery_charge_energy_kwh",
+            "battery_discharge_energy_kwh",
+            "grid_import_energy_kwh",
+            "grid_export_energy_kwh",
+        )
+        if self._def.key in energy_keys:
             last = await self.async_get_last_state()
             if last and last.state not in (None, "", "unknown", "unavailable"):
                 try:
@@ -100,13 +117,16 @@ class BmzSensor(CoordinatorEntity[BmzCoordinator], SensorEntity, RestoreEntity):
                 val = None
 
             # Push restored values into coordinator accumulator once (best-effort).
-            # We do this from each energy sensor; coordinator will keep the last set values.
             if self._def.key == "pv_energy_kwh":
-                self.coordinator.set_energy_state(pv_kwh=val, chg_kwh=None, dis_kwh=None)
+                self.coordinator.set_energy_state(pv_kwh=val)
             elif self._def.key == "battery_charge_energy_kwh":
-                self.coordinator.set_energy_state(pv_kwh=None, chg_kwh=val, dis_kwh=None)
+                self.coordinator.set_energy_state(battery_charge_kwh=val)
             elif self._def.key == "battery_discharge_energy_kwh":
-                self.coordinator.set_energy_state(pv_kwh=None, chg_kwh=None, dis_kwh=val)
+                self.coordinator.set_energy_state(battery_discharge_kwh=val)
+            elif self._def.key == "grid_import_energy_kwh":
+                self.coordinator.set_energy_state(grid_import_kwh=val)
+            elif self._def.key == "grid_export_energy_kwh":
+                self.coordinator.set_energy_state(grid_export_kwh=val)
 
     @property
     def native_value(self) -> Any:

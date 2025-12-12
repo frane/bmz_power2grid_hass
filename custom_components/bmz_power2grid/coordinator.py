@@ -51,6 +51,8 @@ class EnergyAccumulators:
     pv_kwh: float = 0.0
     battery_charge_kwh: float = 0.0
     battery_discharge_kwh: float = 0.0
+    grid_import_kwh: float = 0.0
+    grid_export_kwh: float = 0.0
 
 
 class BmzCoordinator(DataUpdateCoordinator[dict]):
@@ -79,16 +81,33 @@ class BmzCoordinator(DataUpdateCoordinator[dict]):
             update_interval=timedelta(seconds=int(scan_interval)),
         )
 
-    def set_energy_state(self, pv_kwh: float | None, chg_kwh: float | None, dis_kwh: float | None) -> None:
+    def set_energy_state(
+        self,
+        pv_kwh: float | None = None,
+        battery_charge_kwh: float | None = None,
+        battery_discharge_kwh: float | None = None,
+        grid_import_kwh: float | None = None,
+        grid_export_kwh: float | None = None,
+    ) -> None:
         """Called by RestoreEntity sensors after restore."""
         if pv_kwh is not None:
             self._energy.pv_kwh = float(pv_kwh)
-        if chg_kwh is not None:
-            self._energy.battery_charge_kwh = float(chg_kwh)
-        if dis_kwh is not None:
-            self._energy.battery_discharge_kwh = float(dis_kwh)
+        if battery_charge_kwh is not None:
+            self._energy.battery_charge_kwh = float(battery_charge_kwh)
+        if battery_discharge_kwh is not None:
+            self._energy.battery_discharge_kwh = float(battery_discharge_kwh)
+        if grid_import_kwh is not None:
+            self._energy.grid_import_kwh = float(grid_import_kwh)
+        if grid_export_kwh is not None:
+            self._energy.grid_export_kwh = float(grid_export_kwh)
 
-    def _integrate_energy(self, pv_w: float | None, batt_w: float | None, now: float) -> None:
+    def _integrate_energy(
+        self,
+        pv_w: float | None,
+        batt_w: float | None,
+        grid_w: float | None,
+        now: float,
+    ) -> None:
         """
         Integrate power -> energy:
         - PV energy: only positive generation (>=0)
@@ -97,6 +116,11 @@ class BmzCoordinator(DataUpdateCoordinator[dict]):
               * negative = charging
               * positive = discharging
             We create two monotonic counters: charge_kWh and discharge_kWh.
+        - Grid:
+            grid_power_total_w is signed:
+              * positive = importing from grid
+              * negative = exporting to grid
+            We create two monotonic counters: import_kWh and export_kWh.
         """
         if self._last_ts is None:
             self._last_ts = now
@@ -119,6 +143,14 @@ class BmzCoordinator(DataUpdateCoordinator[dict]):
                 self._energy.battery_charge_kwh += ((-bw) * dt_s) / 3_600_000.0
             elif bw > 0:  # discharging
                 self._energy.battery_discharge_kwh += (bw * dt_s) / 3_600_000.0
+
+        # Grid
+        if grid_w is not None:
+            gw = float(grid_w)
+            if gw > 0:  # importing from grid
+                self._energy.grid_import_kwh += (gw * dt_s) / 3_600_000.0
+            elif gw < 0:  # exporting to grid
+                self._energy.grid_export_kwh += ((-gw) * dt_s) / 3_600_000.0
 
     async def _async_update_data(self) -> dict:
         try:
@@ -170,9 +202,14 @@ class BmzCoordinator(DataUpdateCoordinator[dict]):
             grid_l3_w = GRID_POWER_SIGN * regs_to_s32_be(gp[4:6])
             grid_power_total_w = grid_l1_w + grid_l2_w + grid_l3_w
 
+            # --- GRID IMPORT/EXPORT ---
+            # Positive grid power = importing, negative = exporting
+            grid_import_w = max(0, grid_power_total_w)
+            grid_export_w = max(0, -grid_power_total_w)
+
             # --- ENERGY ACCUMULATION ---
             now = time.monotonic()
-            self._integrate_energy(pv_power_w, battery_power_w, now)
+            self._integrate_energy(pv_power_w, battery_power_w, grid_power_total_w, now)
 
             return {
                 # power
@@ -205,11 +242,15 @@ class BmzCoordinator(DataUpdateCoordinator[dict]):
                 "grid_l2_w": grid_l2_w,
                 "grid_l3_w": grid_l3_w,
                 "grid_power_total_w": grid_power_total_w,
+                "grid_import_w": grid_import_w,
+                "grid_export_w": grid_export_w,
 
                 # energy (monotonic, kWh)
                 "pv_energy_kwh": round(self._energy.pv_kwh, 3),
                 "battery_charge_energy_kwh": round(self._energy.battery_charge_kwh, 3),
                 "battery_discharge_energy_kwh": round(self._energy.battery_discharge_kwh, 3),
+                "grid_import_energy_kwh": round(self._energy.grid_import_kwh, 3),
+                "grid_export_energy_kwh": round(self._energy.grid_export_kwh, 3),
             }
 
         except Exception as err:
