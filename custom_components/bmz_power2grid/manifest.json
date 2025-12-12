@@ -1,8 +1,8 @@
 {
-  "domain": "bmz_power2grid_hass",
+  "domain": "bmz_power2grid",
   "name": "BMZ Power2Grid (Modbus RTU/TCP) Integration for Home Assistant",
   "version": "0.1.0",
-  "documentation": "https://example.invalid",
+  "documentation": "https://github.com/frane/bmz_power2grid_hass",
   "requirements": [],
   "codeowners": [],
   "config_flow": true,

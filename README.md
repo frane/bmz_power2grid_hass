@@ -4,6 +4,8 @@ A native Home Assistant integration for **BMZ Power2Grid inverters** and **BMZ H
 
 This integration was developed by reverse-engineering the local inverter communication and does **not rely on cloud services**.
 
+[![HACS Custom](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://hacs.xyz/)
+
 ---
 
 ## ✨ Features
