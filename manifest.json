@@ -1,0 +1,10 @@
+{
+  "domain": "bmz_power2grid_hass",
+  "name": "BMZ Power2Grid (Modbus RTU/TCP) Integration for Home Assistant",
+  "version": "0.1.0",
+  "documentation": "https://example.invalid",
+  "requirements": [],
+  "codeowners": [],
+  "config_flow": true,
+  "iot_class": "local_polling"
+}

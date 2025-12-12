@@ -1,0 +1,16 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "BMZ Power2Grid",
+        "description": "Connect to BMZ Power2Grid inverter via Modbus RTU-over-TCP.",
+        "data": {
+          "host": "Host",
+          "port": "Port",
+          "unit_id": "Unit ID",
+          "scan_interval": "Scan interval (seconds)"
+        }
+      }
+    }
+  }
+}
