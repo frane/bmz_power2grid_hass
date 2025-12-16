@@ -32,64 +32,64 @@ Based on the **official Solinteg Modbus RTU Protocol v00.02** documentation.
 
 ### Power (Instantaneous)
 
-| Sensor | Description | Unit |
-|--------|-------------|------|
-| Total PV Input Power | Solar panel power output | W |
-| Battery P | Battery power (positive=discharge, negative=charge) | W |
-| Battery Charge Power | Power flowing into battery | W |
-| Battery Discharge Power | Power flowing from battery | W |
-| Pmeter Total | Grid meter total (positive=export, negative=import) | W |
-| Pmeter Phase A/B/C | Grid meter per phase | W |
-| Grid Import Power | Power drawn from grid | W |
-| Grid Export Power | Power fed to grid | W |
+| Sensor | Modbus Spec Name | Description | Unit |
+|--------|------------------|-------------|------|
+| Solar Power | Total PV Input Power | Solar panel output | W |
+| Battery Power | Battery_P | Net battery power (+discharge, -charge) | W |
+| Battery Charging | - | Power flowing into battery | W |
+| Battery Discharging | - | Power flowing from battery | W |
+| Grid Power | Pmeter | Net grid power (+export, -import) | W |
+| Grid Power L1/L2/L3 | Pmeter Phase A/B/C | Grid power per phase | W |
+| Grid Import | - | Power drawn from grid | W |
+| Grid Export | - | Power fed to grid | W |
 
 ### Battery State
 
-| Sensor | Description | Unit |
-|--------|-------------|------|
-| SOC | State of Charge | % |
-| SOH | State of Health | % |
-| Battery V | Battery voltage | V |
-| Battery I | Battery current (positive=discharge, negative=charge) | A |
+| Sensor | Modbus Spec Name | Description | Unit |
+|--------|------------------|-------------|------|
+| Battery Level | SOC | State of Charge | % |
+| Battery Health | SOH | State of Health | % |
+| Battery Voltage | Battery_V | Battery voltage | V |
+| Battery Current | Battery_I | Battery current (+discharge, -charge) | A |
 
 ### Grid
 
 | Sensor | Description | Unit |
 |--------|-------------|------|
-| Phase A/B/C Voltage | Grid voltage per phase | V |
-| Phase A/B/C Current | Grid current per phase | A |
+| Grid Voltage L1/L2/L3 | Grid voltage per phase | V |
+| Grid Current L1/L2/L3 | Grid current per phase | A |
 | Grid Frequency | Grid frequency | Hz |
 
 ### Temperatures
 
-| Sensor | Description | Unit |
-|--------|-------------|------|
-| Inverter Temp | Inverter temperature | °C |
-| BMS Pack Temperature | Battery pack temperature | °C |
+| Sensor | Modbus Spec Name | Description | Unit |
+|--------|------------------|-------------|------|
+| Inverter Temperature | Inverter inner temp | Inverter temperature | °C |
+| Battery Temperature | Pack temperature | Battery pack temperature | °C |
 
 ### Energy Totals (Lifetime)
 
-These are native counters from the device - they persist across restarts.
+Native counters from the device - persist across restarts.
 
-| Sensor | Description | Unit |
-|--------|-------------|------|
-| Total PV Generation | Lifetime solar energy produced | kWh |
-| Total Battery Charging Energy | Lifetime energy charged into battery | kWh |
-| Total Battery Discharging Energy | Lifetime energy discharged from battery | kWh |
-| Total Purchased Energy from Grid | Lifetime energy imported from grid | kWh |
-| Total Energy Injected into Grid | Lifetime energy exported to grid | kWh |
-| Total Load Consumption | Lifetime energy consumed by loads | kWh |
+| Sensor | Modbus Spec Name | Unit |
+|--------|------------------|------|
+| Total Solar Energy | Total PV generation | kWh |
+| Total Battery Charged | Total battery charging energy | kWh |
+| Total Battery Discharged | Total battery discharging energy | kWh |
+| Total Grid Import | Total purchased energy | kWh |
+| Total Grid Export | Total energy injected to grid | kWh |
+| Total Consumption | Total load consumption | kWh |
 
 ### Daily Energy (Resets at Midnight)
 
-| Sensor | Description | Unit |
-|--------|-------------|------|
-| Daily PV Generation | Today's solar energy | kWh |
-| Daily Battery Charging Energy | Today's battery charge energy | kWh |
-| Daily Battery Discharging Energy | Today's battery discharge energy | kWh |
-| Daily Purchased Energy | Today's grid import energy | kWh |
-| Daily Energy Injected to Grid | Today's grid export energy | kWh |
-| Daily Load Consumption | Today's load consumption | kWh |
+| Sensor | Modbus Spec Name | Unit |
+|--------|------------------|------|
+| Today Solar Energy | Daily PV generation | kWh |
+| Today Battery Charged | Daily battery charging energy | kWh |
+| Today Battery Discharged | Daily battery discharging energy | kWh |
+| Today Grid Import | Daily purchased energy | kWh |
+| Today Grid Export | Daily energy injected to grid | kWh |
+| Today Consumption | Daily load consumption | kWh |
 
 ---
 
@@ -97,18 +97,18 @@ These are native counters from the device - they persist across restarts.
 
 ### Sign Conventions
 
-**Battery Power (Battery P):**
+**Battery Power:**
 - **Positive** = Battery is discharging (providing power)
 - **Negative** = Battery is charging (consuming power)
 
-**Grid Meter Power (Pmeter):**
+**Grid Power:**
 - **Positive** = Exporting to grid (selling power)
 - **Negative** = Importing from grid (buying power)
 
 ### Example Scenarios
 
-| Scenario | Battery P | Pmeter Total |
-|----------|-----------|--------------|
+| Scenario | Battery Power | Grid Power |
+|----------|---------------|----------|
 | Sunny day, battery charging, exporting to grid | -2000 W | +3000 W |
 | Night, battery discharging, no grid usage | +1500 W | 0 W |
 | Night, battery empty, importing from grid | 0 W | -2000 W |
@@ -122,11 +122,11 @@ All energy sensors use `state_class: total_increasing` and can be directly used 
 
 | Dashboard Section | Sensor to Use |
 |-------------------|---------------|
-| Solar Production | Total PV Generation |
-| Grid Consumption | Total Purchased Energy from Grid |
-| Return to Grid | Total Energy Injected into Grid |
-| Battery Storage (In) | Total Battery Charging Energy |
-| Battery Storage (Out) | Total Battery Discharging Energy |
+| Solar Production | Total Solar Energy |
+| Grid Consumption | Total Grid Import |
+| Return to Grid | Total Grid Export |
+| Battery Storage (In) | Total Battery Charged |
+| Battery Storage (Out) | Total Battery Discharged |
 
 ---
 
@@ -158,20 +158,20 @@ All energy sensors use `state_class: total_increasing` and can be directly used 
 
 Based on official Solinteg Modbus RTU Protocol v00.02 (2022-12-06).
 
-| Register | Description | Type | Scale |
-|----------|-------------|------|-------|
-| 11028 | Total PV Input Power | U32 | /1000 kW |
-| 30258 | Battery P | I32 | /1000 kW |
-| 30254 | Battery V | U16 | /10 V |
-| 30255 | Battery I | I16 | /10 A |
-| 33000 | SOC | U16 | /100 % |
-| 33001 | SOH | U16 | /100 % |
-| 10994-11001 | Pmeter (per phase + total) | I32 | /1000 kW |
-| 11009-11015 | Grid V/A/Hz | U16 | /10, /100 |
-| 11032 | Inverter Temp | I16 | /10 °C |
-| 33003 | BMS Pack Temperature | U16 | /10 °C |
-| 31102-31115 | Total Energy Counters | U32 | /10 kWh |
-| 31000-31006 | Daily Energy Counters | U16 | /10 kWh |
+| Register | Spec Name | Sensor | Type | Scale |
+|----------|-----------|--------|------|-------|
+| 11028 | Total PV Input Power | Solar Power | U32 | W |
+| 30258 | Battery_P | Battery Power | I32 | W |
+| 30254 | Battery_V | Battery Voltage | U16 | /10 V |
+| 30255 | Battery_I | Battery Current | I16 | /10 A |
+| 33000 | SOC | Battery Level | U16 | /100 % |
+| 33001 | SOH | Battery Health | U16 | /100 % |
+| 10994-11001 | Pmeter | Grid Power (per phase + total) | I32 | W |
+| 11009-11015 | Grid V/A/Hz | Grid Voltage/Current/Frequency | U16 | /10, /100 |
+| 11032 | Inverter inner temp | Inverter Temperature | I16 | /10 °C |
+| 33003 | Pack temperature | Battery Temperature | U16 | /10 °C |
+| 31102-31115 | Total energy counters | Total Energy sensors | U32 | /10 kWh |
+| 31000-31006 | Daily energy counters | Today Energy sensors | U16 | /10 kWh |
 
 ---
 
