@@ -22,52 +22,52 @@ class BmzSensorDef:
 
 
 SENSORS: tuple[BmzSensorDef, ...] = (
-    # === POWER (instantaneous) ===
-    BmzSensorDef("pv_power_w", "PV Power", "W", SensorDeviceClass.POWER, SensorStateClass.MEASUREMENT),
-    BmzSensorDef("battery_power_w", "Battery Power", "W", SensorDeviceClass.POWER, SensorStateClass.MEASUREMENT),
+    # === POWER (instantaneous) - from Solinteg docs ===
+    BmzSensorDef("pv_power_w", "Total PV Input Power", "W", SensorDeviceClass.POWER, SensorStateClass.MEASUREMENT),
+    BmzSensorDef("battery_power_w", "Battery P", "W", SensorDeviceClass.POWER, SensorStateClass.MEASUREMENT),
     BmzSensorDef("battery_charge_w", "Battery Charge Power", "W", SensorDeviceClass.POWER, SensorStateClass.MEASUREMENT),
     BmzSensorDef("battery_discharge_w", "Battery Discharge Power", "W", SensorDeviceClass.POWER, SensorStateClass.MEASUREMENT),
-    BmzSensorDef("grid_power_total_w", "Grid Power", "W", SensorDeviceClass.POWER, SensorStateClass.MEASUREMENT),
-    BmzSensorDef("grid_l1_w", "Grid L1 Power", "W", SensorDeviceClass.POWER, SensorStateClass.MEASUREMENT),
-    BmzSensorDef("grid_l2_w", "Grid L2 Power", "W", SensorDeviceClass.POWER, SensorStateClass.MEASUREMENT),
-    BmzSensorDef("grid_l3_w", "Grid L3 Power", "W", SensorDeviceClass.POWER, SensorStateClass.MEASUREMENT),
+    BmzSensorDef("grid_power_total_w", "Pmeter Total", "W", SensorDeviceClass.POWER, SensorStateClass.MEASUREMENT),
+    BmzSensorDef("grid_l1_w", "Pmeter Phase A", "W", SensorDeviceClass.POWER, SensorStateClass.MEASUREMENT),
+    BmzSensorDef("grid_l2_w", "Pmeter Phase B", "W", SensorDeviceClass.POWER, SensorStateClass.MEASUREMENT),
+    BmzSensorDef("grid_l3_w", "Pmeter Phase C", "W", SensorDeviceClass.POWER, SensorStateClass.MEASUREMENT),
     BmzSensorDef("grid_import_w", "Grid Import Power", "W", SensorDeviceClass.POWER, SensorStateClass.MEASUREMENT),
     BmzSensorDef("grid_export_w", "Grid Export Power", "W", SensorDeviceClass.POWER, SensorStateClass.MEASUREMENT),
 
-    # === BATTERY STATE ===
-    BmzSensorDef("battery_soc_pct", "Battery State of Charge", "%", SensorDeviceClass.BATTERY, SensorStateClass.MEASUREMENT),
-    BmzSensorDef("battery_soh_pct", "Battery State of Health", "%", None, SensorStateClass.MEASUREMENT),
-    BmzSensorDef("battery_voltage", "Battery Voltage", "V", SensorDeviceClass.VOLTAGE, SensorStateClass.MEASUREMENT),
-    BmzSensorDef("battery_current", "Battery Current", "A", SensorDeviceClass.CURRENT, SensorStateClass.MEASUREMENT),
+    # === BATTERY STATE - from Solinteg docs ===
+    BmzSensorDef("battery_soc_pct", "SOC", "%", SensorDeviceClass.BATTERY, SensorStateClass.MEASUREMENT),
+    BmzSensorDef("battery_soh_pct", "SOH", "%", None, SensorStateClass.MEASUREMENT),
+    BmzSensorDef("battery_voltage", "Battery V", "V", SensorDeviceClass.VOLTAGE, SensorStateClass.MEASUREMENT),
+    BmzSensorDef("battery_current", "Battery I", "A", SensorDeviceClass.CURRENT, SensorStateClass.MEASUREMENT),
 
-    # === GRID V/A/Hz ===
-    BmzSensorDef("grid_l1_v", "Grid L1 Voltage", "V", SensorDeviceClass.VOLTAGE, SensorStateClass.MEASUREMENT),
-    BmzSensorDef("grid_l1_a", "Grid L1 Current", "A", SensorDeviceClass.CURRENT, SensorStateClass.MEASUREMENT),
-    BmzSensorDef("grid_l2_v", "Grid L2 Voltage", "V", SensorDeviceClass.VOLTAGE, SensorStateClass.MEASUREMENT),
-    BmzSensorDef("grid_l2_a", "Grid L2 Current", "A", SensorDeviceClass.CURRENT, SensorStateClass.MEASUREMENT),
-    BmzSensorDef("grid_l3_v", "Grid L3 Voltage", "V", SensorDeviceClass.VOLTAGE, SensorStateClass.MEASUREMENT),
-    BmzSensorDef("grid_l3_a", "Grid L3 Current", "A", SensorDeviceClass.CURRENT, SensorStateClass.MEASUREMENT),
+    # === GRID V/A/Hz - from Solinteg docs ===
+    BmzSensorDef("grid_l1_v", "Phase A Voltage", "V", SensorDeviceClass.VOLTAGE, SensorStateClass.MEASUREMENT),
+    BmzSensorDef("grid_l1_a", "Phase A Current", "A", SensorDeviceClass.CURRENT, SensorStateClass.MEASUREMENT),
+    BmzSensorDef("grid_l2_v", "Phase B Voltage", "V", SensorDeviceClass.VOLTAGE, SensorStateClass.MEASUREMENT),
+    BmzSensorDef("grid_l2_a", "Phase B Current", "A", SensorDeviceClass.CURRENT, SensorStateClass.MEASUREMENT),
+    BmzSensorDef("grid_l3_v", "Phase C Voltage", "V", SensorDeviceClass.VOLTAGE, SensorStateClass.MEASUREMENT),
+    BmzSensorDef("grid_l3_a", "Phase C Current", "A", SensorDeviceClass.CURRENT, SensorStateClass.MEASUREMENT),
     BmzSensorDef("grid_frequency", "Grid Frequency", "Hz", SensorDeviceClass.FREQUENCY, SensorStateClass.MEASUREMENT),
 
-    # === TEMPERATURES ===
-    BmzSensorDef("inverter_temp_c", "Inverter Temperature", "°C", SensorDeviceClass.TEMPERATURE, SensorStateClass.MEASUREMENT),
-    BmzSensorDef("battery_temp_c", "Battery Temperature", "°C", SensorDeviceClass.TEMPERATURE, SensorStateClass.MEASUREMENT),
+    # === TEMPERATURES - from Solinteg docs ===
+    BmzSensorDef("inverter_temp_c", "Inverter Temp", "°C", SensorDeviceClass.TEMPERATURE, SensorStateClass.MEASUREMENT),
+    BmzSensorDef("battery_temp_c", "BMS Pack Temperature", "°C", SensorDeviceClass.TEMPERATURE, SensorStateClass.MEASUREMENT),
 
-    # === ENERGY TOTALS (native from device, for Energy Dashboard) ===
-    BmzSensorDef("total_pv_energy_kwh", "Total PV Energy", "kWh", SensorDeviceClass.ENERGY, SensorStateClass.TOTAL_INCREASING),
-    BmzSensorDef("total_battery_charge_kwh", "Total Battery Charge Energy", "kWh", SensorDeviceClass.ENERGY, SensorStateClass.TOTAL_INCREASING),
-    BmzSensorDef("total_battery_discharge_kwh", "Total Battery Discharge Energy", "kWh", SensorDeviceClass.ENERGY, SensorStateClass.TOTAL_INCREASING),
-    BmzSensorDef("total_grid_import_kwh", "Total Grid Import Energy", "kWh", SensorDeviceClass.ENERGY, SensorStateClass.TOTAL_INCREASING),
-    BmzSensorDef("total_grid_export_kwh", "Total Grid Export Energy", "kWh", SensorDeviceClass.ENERGY, SensorStateClass.TOTAL_INCREASING),
-    BmzSensorDef("total_load_kwh", "Total Load Energy", "kWh", SensorDeviceClass.ENERGY, SensorStateClass.TOTAL_INCREASING),
+    # === ENERGY TOTALS - from Solinteg docs ===
+    BmzSensorDef("total_pv_energy_kwh", "Total PV Generation", "kWh", SensorDeviceClass.ENERGY, SensorStateClass.TOTAL_INCREASING),
+    BmzSensorDef("total_battery_charge_kwh", "Total Battery Charging Energy", "kWh", SensorDeviceClass.ENERGY, SensorStateClass.TOTAL_INCREASING),
+    BmzSensorDef("total_battery_discharge_kwh", "Total Battery Discharging Energy", "kWh", SensorDeviceClass.ENERGY, SensorStateClass.TOTAL_INCREASING),
+    BmzSensorDef("total_grid_import_kwh", "Total Purchased Energy from Grid", "kWh", SensorDeviceClass.ENERGY, SensorStateClass.TOTAL_INCREASING),
+    BmzSensorDef("total_grid_export_kwh", "Total Energy Injected into Grid", "kWh", SensorDeviceClass.ENERGY, SensorStateClass.TOTAL_INCREASING),
+    BmzSensorDef("total_load_kwh", "Total Load Consumption", "kWh", SensorDeviceClass.ENERGY, SensorStateClass.TOTAL_INCREASING),
 
-    # === DAILY ENERGY (resets at midnight) ===
-    BmzSensorDef("daily_pv_energy_kwh", "Daily PV Energy", "kWh", SensorDeviceClass.ENERGY, SensorStateClass.TOTAL_INCREASING),
-    BmzSensorDef("daily_battery_charge_kwh", "Daily Battery Charge Energy", "kWh", SensorDeviceClass.ENERGY, SensorStateClass.TOTAL_INCREASING),
-    BmzSensorDef("daily_battery_discharge_kwh", "Daily Battery Discharge Energy", "kWh", SensorDeviceClass.ENERGY, SensorStateClass.TOTAL_INCREASING),
-    BmzSensorDef("daily_grid_import_kwh", "Daily Grid Import Energy", "kWh", SensorDeviceClass.ENERGY, SensorStateClass.TOTAL_INCREASING),
-    BmzSensorDef("daily_grid_export_kwh", "Daily Grid Export Energy", "kWh", SensorDeviceClass.ENERGY, SensorStateClass.TOTAL_INCREASING),
-    BmzSensorDef("daily_load_kwh", "Daily Load Energy", "kWh", SensorDeviceClass.ENERGY, SensorStateClass.TOTAL_INCREASING),
+    # === DAILY ENERGY - from Solinteg docs ===
+    BmzSensorDef("daily_pv_energy_kwh", "Daily PV Generation", "kWh", SensorDeviceClass.ENERGY, SensorStateClass.TOTAL_INCREASING),
+    BmzSensorDef("daily_battery_charge_kwh", "Daily Battery Charging Energy", "kWh", SensorDeviceClass.ENERGY, SensorStateClass.TOTAL_INCREASING),
+    BmzSensorDef("daily_battery_discharge_kwh", "Daily Battery Discharging Energy", "kWh", SensorDeviceClass.ENERGY, SensorStateClass.TOTAL_INCREASING),
+    BmzSensorDef("daily_grid_import_kwh", "Daily Purchased Energy", "kWh", SensorDeviceClass.ENERGY, SensorStateClass.TOTAL_INCREASING),
+    BmzSensorDef("daily_grid_export_kwh", "Daily Energy Injected to Grid", "kWh", SensorDeviceClass.ENERGY, SensorStateClass.TOTAL_INCREASING),
+    BmzSensorDef("daily_load_kwh", "Daily Load Consumption", "kWh", SensorDeviceClass.ENERGY, SensorStateClass.TOTAL_INCREASING),
 )
 
 
