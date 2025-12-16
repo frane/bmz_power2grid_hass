@@ -54,8 +54,23 @@ class RtuOverTcpClient:
         return regs
 
 def regs_to_s32_be(regs: Sequence[int]) -> int:
-    # Big-endian pair (hi, lo), signed 32
+    """Big-endian pair (hi, lo), signed 32-bit."""
     if len(regs) < 2:
         raise ValueError("Need 2 registers")
     b = regs[0].to_bytes(2, "big") + regs[1].to_bytes(2, "big")
     return int.from_bytes(b, "big", signed=True)
+
+
+def regs_to_u32_be(regs: Sequence[int]) -> int:
+    """Big-endian pair (hi, lo), unsigned 32-bit."""
+    if len(regs) < 2:
+        raise ValueError("Need 2 registers")
+    b = regs[0].to_bytes(2, "big") + regs[1].to_bytes(2, "big")
+    return int.from_bytes(b, "big", signed=False)
+
+
+def regs_to_s16(reg: int) -> int:
+    """Convert unsigned 16-bit register to signed 16-bit."""
+    if reg >= 0x8000:
+        return reg - 0x10000
+    return reg
